@@ -254,69 +254,62 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
 struct ContentView: View {
     @StateObject var bleManager = BLEManager()
     @State private var showingDeviceList = false
-    @State private var inputText = ""
-    @FocusState private var isInputFocused: Bool
+    @State private var showingTextInput = false
+    @State private var showingImageInput = false
 
     var body: some View {
         NavigationView {
-            VStack(spacing: 20) {
+            VStack() {
                 if bleManager.isAutoConnecting {
                     // 過去に繋いだデバイスがあれば自動で接続する
-                    VStack(spacing: 12) {
-                        ProgressView("Reconnecting to \(bleManager.deviceName)...")
-                        Text("Please wait a moment")
+                    VStack {
+                        Spacer()
+                        ProgressView()
+                            .padding(.trailing, 8)
+                        Text("Reconnecting to \(bleManager.deviceName)")
                             .foregroundColor(.secondary)
-                            .font(.subheadline)
+                        Spacer()
                     }
                 } else if bleManager.isConnected {
-                    // ESPに接続できた時にメイン画面を出す
                     VStack(alignment: .leading) {
-                        Section(header: Text("\(bleManager.deviceName)にピクチャを送る").font(.caption)){
-                            TextField("いまの気分は？", text: $inputText)
-                                .textFieldStyle(RoundedBorderTextFieldStyle())
-                            
-                            Button(action: {
-                                let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
-                                guard !text.isEmpty else { return }
+                        // ESPに接続できた時にメイン画面を出す
+                        Section(header: Text("ピクチャをおくる").font(.caption)) {
+                            HStack(spacing: 20) {
+                                Button(action: {
+                                    showingTextInput = true
+                                }) {
+                                    Label("テキスト", systemImage: "textformat")
+                                }
+                                .buttonStyle(AccentProminentButtonStyle())
                                 
-                                let json: [String: Any] = [
-                                    "id": "p001",
-                                    "flag": "text",
-                                    "text": text
-                                ]
-                                bleManager.sendJSON(json)
-                                
-                                inputText = ""
-                                isInputFocused = false
-                            }) {
-                                Text("ピクチャを登録")
-                                    .frame(maxWidth: .infinity)
+                                Button(action: {
+                                    showingImageInput = true
+                                }) {
+                                    Label("写真", systemImage: "photo")
+                                }
+                                .buttonStyle(AccentProminentButtonStyle())
                             }
-                            .buttonStyle(.borderedProminent)
-                            .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         }
-                        
-                        Spacer()
-                        
                         // ESPがdata.jsonに持っているデータを取得。したい。
-                        Section(header: Text("これまでに送ったピクチャ").font(.caption)){
-                            Button("データを取得") {
-                                bleManager.requestDataJson()
-                            }
-                            .buttonStyle(.bordered)
-                            ScrollView {
-                                Text(bleManager.receivedData.isEmpty ? "まだデータはありません" : bleManager.receivedData)
-                                    .font(.system(size: 14, design: .monospaced))
-                                    .padding()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(8)
-                            }
-                            .frame(maxHeight: 200)
-                        }
+//                        Section(header: Text("これまでに送ったピクチャ").font(.caption)){
+//                            Text(bleManager.receivedData.isEmpty ? "まだデータはありません" : bleManager.receivedData)
+//                                .font(.system(size: 14, design: .monospaced))
+//                                .padding()
+//                                .frame(maxWidth: .infinity, alignment: .leading)
+//                                .background(Color(.systemGray6))
+//                                .cornerRadius(8)
+//                            
+//                            Button(action:{
+//                                bleManager.requestDataJson()
+//                            }) {
+//                                Text("データを取得")
+//                                    .frame(maxWidth: .infinity)
+//                            }
+//                            .buttonStyle(AccentProminentButtonStyle())
+//                        }
                     }
                 } else {
-                    VStack(spacing: 15) {
+                    VStack(spacing: 20) {
                         if bleManager.deviceName != "No Device" {
                             Spacer()
                             Text("No devices found")
@@ -339,14 +332,12 @@ struct ContentView: View {
                         Button(action: {
                             showingDeviceList = true
                             bleManager.startScanning()
-                            isInputFocused = false
                         }) {
                             Label("Add turnie", systemImage: "plus")
                         }
                         if bleManager.isConnected {
                             Button(role: .destructive, action: {
                                 bleManager.disconnect()
-                                isInputFocused = false
                             }) {
                                 Label("Disconnect \(bleManager.deviceName)", systemImage: "trash")
                             }
@@ -360,83 +351,12 @@ struct ContentView: View {
             .sheet(isPresented: $showingDeviceList) {
                 DeviceListView(bleManager: bleManager, isPresented: $showingDeviceList)
             }
-            .onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    if !bleManager.hasPreviousDevice {
-                        print("No previous device found — opening scan modal.")
-                        bleManager.startScanning()
-                        showingDeviceList = true
-                    }
-                }
+            .sheet(isPresented: $showingTextInput) {
+                TextInputView(bleManager: bleManager, isPresented: $showingTextInput)
             }
-            .onTapGesture {
-                isInputFocused = false
+            .sheet(isPresented: $showingImageInput) {
+                ImageInputView(bleManager: bleManager, isPresented: $showingImageInput)
             }
-        }
-    }
-}
-
-
-struct DeviceListView: View {
-    @ObservedObject var bleManager: BLEManager
-    @Binding var isPresented: Bool
-    
-    var body: some View {
-        NavigationStack {
-            VStack {
-                if bleManager.isScanning && bleManager.discoveredDevices.isEmpty {
-                    HStack {
-                        ProgressView()
-                            .padding(.trailing, 8)
-                        Text("Scanning for devices...")
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                if bleManager.discoveredDevices.isEmpty {
-                    Spacer()
-                    Text("No devices found")
-                        .foregroundColor(.secondary)
-                    Spacer()
-                } else {
-                    List(bleManager.discoveredDevices) { device in
-                        Button(action: {
-                            bleManager.connect(to: device)
-                            isPresented = false
-                        }) {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(device.name)
-                                        .font(.headline)
-                                    Text("RSSI: \(device.rssi) dBm")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.secondary)
-                                    .font(.caption)
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    .background(.pink)
-                }
-            }
-            .navigationTitle("Select Device")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        bleManager.stopScanning()
-                        isPresented = false
-                    }
-                }
-            }
-        }
-        .onDisappear {
-            bleManager.stopScanning()
         }
     }
 }
