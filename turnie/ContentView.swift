@@ -238,16 +238,52 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         writeCharacteristic = nil
     }
 
+//    func sendJSON(_ json: [String: Any]) {
+//        guard let writeCharacteristic = writeCharacteristic,
+//              let peripheral = targetPeripheral,
+//              let data = try? JSONSerialization.data(withJSONObject: json) else {
+//            print("Cannot send JSON: not ready")
+//            return
+//        }
+//
+//        peripheral.writeValue(data, for: writeCharacteristic, type: .withResponse)
+//        print("Sent JSON to ESP32")
+//    }
+    /// JSONデータを分割して送信する（テキスト・画像共通）
     func sendJSON(_ json: [String: Any]) {
         guard let writeCharacteristic = writeCharacteristic,
-              let peripheral = targetPeripheral,
-              let data = try? JSONSerialization.data(withJSONObject: json) else {
-            print("Cannot send JSON: not ready")
+              let peripheral = targetPeripheral else {
+            print("⚠️ Not connected")
             return
         }
 
-        peripheral.writeValue(data, for: writeCharacteristic, type: .withResponse)
-        print("Sent JSON to ESP32")
+        guard let data = try? JSONSerialization.data(withJSONObject: json),
+              let jsonString = String(data: data, encoding: .utf8) else {
+            print("⚠️ Failed to encode JSON")
+            return
+        }
+
+        let chunks = jsonString.chunked(into: 100)
+        print("📤 Sending JSON in \(chunks.count) chunks")
+
+        for chunk in chunks {
+            if let chunkData = chunk.data(using: .utf8) {
+                peripheral.writeValue(chunkData, for: writeCharacteristic, type: .withResponse)
+                usleep(30_000) // 30ms待機で安定化
+            }
+        }
+
+        print("✅ JSON sent successfully")
+    }
+}
+
+extension String {
+    func chunked(into size: Int) -> [String] {
+        stride(from: 0, to: count, by: size).map { i in
+            let start = index(startIndex, offsetBy: i)
+            let end = index(start, offsetBy: size, limitedBy: endIndex) ?? endIndex
+            return String(self[start..<end])
+        }
     }
 }
 
