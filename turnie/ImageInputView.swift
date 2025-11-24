@@ -6,8 +6,8 @@ struct ImageInputView: View {
     @State private var showingCamera = false
     @State private var showingLibrary = false
     @State private var mosaicArray: [UInt8] = []
-    @State private var debugText: String = "まだ写真がありません"
     @ObservedObject var bleManager: BLEManager
+    @State private var debugText: String = "まだ写真がありません"
     @Binding var isPresented: Bool
 
     var body: some View {
@@ -133,47 +133,7 @@ struct ImageInputView: View {
             image.draw(in: CGRect(origin: .zero, size: size))
         }
     }
-
-//    func rgbFlatArray(from image: UIImage) -> [UInt8] {
-//        guard let cg = image.cgImage else { return [] }
-//        let width = cg.width
-//        let height = cg.height
-//        let bytesPerPixel = 4
-//        let bytesPerRow = bytesPerPixel * width
-//        let totalBytes = height * bytesPerRow
-//
-//        var pixelData = [UInt8](repeating: 0, count: totalBytes)
-//        let colorSpace = CGColorSpaceCreateDeviceRGB()
-//        guard let context = CGContext(
-//            data: &pixelData,
-//            width: width,
-//            height: height,
-//            bitsPerComponent: 8,
-//            bytesPerRow: bytesPerRow,
-//            space: colorSpace,
-////            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-//            bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
-//        ) else { return [] }
-//
-//        context.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
-//
-//        var flatRGB: [UInt8] = []
-//        flatRGB.reserveCapacity(width * height * 3)
-//
-//        for y in 0..<height {
-//            for x in 0..<width {
-//                let idx = y * bytesPerRow + x * bytesPerPixel
-//                let r = pixelData[idx]
-//                let g = pixelData[idx + 1]
-//                let b = pixelData[idx + 2]
-//                flatRGB.append(r)
-//                flatRGB.append(g)
-//                flatRGB.append(b)
-//            }
-//        }
-//
-//        return flatRGB
-//    }
+    
     func rgbFlatArray(from image: UIImage) -> [UInt8] {
         // 🔸 必ず 8x8 にリサイズ
         let targetSize = CGSize(width: 8, height: 8)
@@ -227,46 +187,6 @@ struct ImageInputView: View {
     }
 
 }
-
-
-// MARK: - モザイクプレビュー
-/// RGB フラット配列（r,g,b,...）を 8×8 のモザイクとして表示
-struct MosaicPreview: View {
-    let rgbArray: [UInt8]
-    let size: Int // 8
-
-    var body: some View {
-        GeometryReader { geo in
-            let cell = geo.size.width / CGFloat(size)
-            Canvas { context, _ in
-                for y in 0..<size {
-                    for x in 0..<size {
-                        let idx = (y * size + x) * 3
-                        if idx + 2 < rgbArray.count {
-                            let r = rgbArray[idx]
-                            let g = rgbArray[idx + 1]
-                            let b = rgbArray[idx + 2]
-                            let color = Color(
-                                red: Double(r) / 255.0,
-                                green: Double(g) / 255.0,
-                                blue: Double(b) / 255.0
-                            )
-                            let rect = CGRect(
-                                x: CGFloat(x) * cell,
-                                y: CGFloat(y) * cell,
-                                width: cell,
-                                height: cell
-                            )
-                            context.fill(Path(rect), with: .color(color))
-                        }
-                    }
-                }
-            }
-        }
-        .aspectRatio(1, contentMode: .fit)
-    }
-}
-
 
 // MARK: - ImagePicker と UIImage.fixOrientation（前と同じ）
 
