@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct DashboardButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.headline)
@@ -12,6 +14,7 @@ struct DashboardButtonStyle: ButtonStyle {
             )
             .foregroundColor(.accent)
             .aspectRatio(1, contentMode: .fit)
+            .opacity(configuration.isPressed ? 0.8 : (isEnabled ? 1.0 : 0.4))
     }
 }
 

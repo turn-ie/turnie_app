@@ -23,6 +23,21 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     var targetPeripheral: CBPeripheral?
     var writeCharacteristic: CBCharacteristic?
     
+    func reconnectToLastDevice() {
+        guard hasPreviousDevice else {
+            print("No previous device to reconnect")
+            return
+        }
+
+        print("Manual reconnect triggered")
+        
+        shouldAutoConnect = true
+        isAutoConnecting = false
+        isScanning = false
+
+        startAutoConnect()
+    }
+    
     private let lastConnectedUUIDKey = "lastConnectedDeviceUUID"
     private var lastConnectedUUID: UUID? {
         get {
