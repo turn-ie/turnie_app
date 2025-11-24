@@ -38,7 +38,9 @@ struct ContentView: View {
                                         if bleManager.isAutoConnecting {
                                             HStack{
                                                 ProgressView()
-                                                    .padding(.trailing, 8)
+//                                                    .padding(.trailing, 8)
+                                                    .scaleEffect(x: 0.75, y: 0.75, anchor: .center)
+                                                    .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
                                                 Text(
                                                     bleManager.isAutoConnecting
                                                     ? "Connecting"
