@@ -12,7 +12,7 @@ struct DeviceListView: View {
                     HStack {
                         ProgressView()
                             .padding(.trailing, 8)
-                        Text("Scanning for devices...")
+                        Text(NSLocalizedString("DeviceList_Scanning", comment: "Scanning for devices message"))
                             .foregroundColor(.secondary)
                     }
                     Spacer()
@@ -20,7 +20,7 @@ struct DeviceListView: View {
                 
                 if bleManager.discoveredDevices.isEmpty {
                     Spacer()
-                    Text("No devices found")
+                    Text(NSLocalizedString("DeviceList_NoDevicesFound", comment: "No devices found message"))
                         .foregroundColor(.secondary)
                     Spacer()
                 } else {
@@ -33,7 +33,7 @@ struct DeviceListView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(device.name)
                                         .font(.headline)
-                                    Text("RSSI: \(device.rssi) dBm")
+                                    Text(String(format: NSLocalizedString("DeviceList_RSSI", comment: "Device RSSI value"), device.rssi))
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
@@ -49,7 +49,7 @@ struct DeviceListView: View {
                     .background(.pink)
                 }
             }
-            .navigationTitle("Select Device")
+            .navigationTitle(NSLocalizedString("DeviceList_SelectDevice", comment: "Device list navigation title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

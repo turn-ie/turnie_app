@@ -8,7 +8,7 @@ struct TextInputView: View {
     var body: some View {
         NavigationStack {
             VStack(){
-                TextField("いまの気分は？", text: $inputText)
+                TextField(NSLocalizedString("TextInput_Placeholder", comment: "Text input placeholder"), text: $inputText)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 
                 Spacer()
@@ -26,14 +26,14 @@ struct TextInputView: View {
                     inputText = ""
                     isPresented = false
                 }) {
-                    Text("ピクチャを登録")
+                    Text(NSLocalizedString("Common_RegisterPicture", comment: "Register picture button"))
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(AccentProminentButtonStyle())
                 .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
             .padding()
-            .navigationTitle("テキストをおくる")
+            .navigationTitle(NSLocalizedString("TextInput_NavigationTitle", comment: "Text input view title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

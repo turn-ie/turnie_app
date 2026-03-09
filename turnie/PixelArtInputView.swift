@@ -78,7 +78,7 @@ struct PixelArtInputView: View {
                 Button {
                     fillAll(with: selectedColor)
                 } label: {
-                    Label("塗りつぶす", systemImage: "paintbrush.fill")
+                    Label(NSLocalizedString("PixelArt_FillButton", comment: "Fill button"), systemImage: "paintbrush.fill")
                 }
                 .foregroundColor(.accent)
                 
@@ -98,14 +98,14 @@ struct PixelArtInputView: View {
                     mosaicArray = []
                     isPresented = false
                 }) {
-                    Text("このピクチャを登録")
+                    Text(NSLocalizedString("Common_RegisterPicture", comment: "Register picture button"))
                         .frame(maxWidth: .infinity)
                 }
                 .disabled(mosaicArray.isEmpty)
                 .buttonStyle(AccentProminentButtonStyle())
             }
             .padding()
-            .navigationTitle("ピクセルアート作成")
+            .navigationTitle(NSLocalizedString("PixelArt_NavigationTitle", comment: "Pixel art creation view title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {

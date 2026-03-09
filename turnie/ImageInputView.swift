@@ -7,7 +7,7 @@ struct ImageInputView: View {
     @State private var showingLibrary = false
     @State private var mosaicArray: [UInt8] = []
     @ObservedObject var bleManager: BLEManager
-    @State private var debugText: String = "まだ写真がありません"
+    @State private var debugText: String = NSLocalizedString("ImageInput_NoPhotoAvailable", comment: "Message when no photo is available")
     @Binding var isPresented: Bool
 
     var body: some View {
@@ -44,7 +44,7 @@ struct ImageInputView: View {
                         mosaicArray = []
                         isPresented = false
                     }) {
-                        Text("このピクチャを登録")
+                        Text(NSLocalizedString("Common_RegisterPicture", comment: "Register picture button"))
                             .frame(maxWidth: .infinity)
                     }
                     .disabled(mosaicArray.isEmpty)
@@ -54,14 +54,14 @@ struct ImageInputView: View {
                         Button(action: {
                             showingLibrary = true
                         }) {
-                            Label("写真", systemImage: "photo")
+                            Label(NSLocalizedString("ContentView_PhotoButton", comment: "Photo input button"), systemImage: "photo")
                         }
                         .buttonStyle(AccentProminentButtonStyle())
                         
                         Button(action: {
                             showingCamera = true
                         }) {
-                            Label("カメラ", systemImage: "camera")
+                            Label(NSLocalizedString("ImageInput_CameraButton", comment: "Camera button"), systemImage: "camera")
                         }
                         .buttonStyle(AccentProminentButtonStyle())
                     }
@@ -79,7 +79,7 @@ struct ImageInputView: View {
                 }
             }
             .padding()
-            .navigationTitle("写真をおくる")
+            .navigationTitle(NSLocalizedString("ImageInput_NavigationTitle", comment: "Image input view title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -97,7 +97,7 @@ struct ImageInputView: View {
     // MARK: - 共通画像処理
     func processImage(_ image: UIImage?) {
         guard let uiImage = image else {
-            debugText = "画像が取得できませんでした"
+            debugText = NSLocalizedString("ImageInput_ImageFetchFailed", comment: "Error message when image fetching fails")
             return
         }
         // 1. 正方形にトリミング
@@ -107,7 +107,7 @@ struct ImageInputView: View {
         // 3. RGB配列生成
         let flat = rgbFlatArray(from: small)
         mosaicArray = flat
-        debugText = "生成完了: \(flat.count) バイト"
+        debugText = String(format: NSLocalizedString("ImageInput_GenerationComplete", comment: "Image generation complete message"), flat.count)
     }
     
     // MARK: - Image processing helpers

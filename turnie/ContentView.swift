@@ -43,26 +43,26 @@ struct ContentView: View {
                                                     .progressViewStyle(CircularProgressViewStyle(tint: Color.white))
                                                 Text(
                                                     bleManager.isAutoConnecting
-                                                    ? "Connecting"
-                                                    : (bleManager.deviceName.isEmpty ? "No Device" : bleManager.deviceName)
+                                                    ? NSLocalizedString("Common_Connecting", comment: "Connecting status")
+                                                    : (bleManager.deviceName.isEmpty ? NSLocalizedString("Common_NoDevice", comment: "No device connected") : bleManager.deviceName)
                                                 )
                                                 .font(.caption)
                                             }
                                         } else {
                                             if bleManager.isConnected {
-                                                Text("Connected")
+                                                Text(NSLocalizedString("Common_Connected", comment: "Device is connected"))
                                                     .font(.caption)
                                             } else{
                                                 VStack(alignment: .leading) {
-                                                    Text("Disconnected")
+                                                    Text(NSLocalizedString("Common_Disconnected", comment: "Device is disconnected"))
                                                         .font(.caption)
-                                                    Text("Tap to Reconnect")
+                                                    Text(NSLocalizedString("ContentView_TapToReconnect", comment: "Tap to reconnect button"))
                                                         .font(.caption2)
                                                 }
                                             }
                                         }
                                         Spacer()
-                                        Text(bleManager.deviceName.isEmpty ? "No Device" : bleManager.deviceName)
+                                        Text(bleManager.deviceName.isEmpty ? NSLocalizedString("Common_NoDevice", comment: "No device connected") : bleManager.deviceName)
                                         
                                     }
                                     .font(.headline)
@@ -86,7 +86,7 @@ struct ContentView: View {
                                     Image(systemName: "textformat")
                                         .font(.system(size: iconSize))
                                     Spacer()
-                                    Text("テキスト")
+                                    Text(NSLocalizedString("ContentView_TextButton", comment: "Text input button"))
                                 }
                             }
                             .buttonStyle(DashboardButtonStyle())
@@ -97,7 +97,7 @@ struct ContentView: View {
                                     Image(systemName: "photo")
                                         .font(.system(size: iconSize))
                                     Spacer()
-                                    Text("写真")
+                                    Text(NSLocalizedString("ContentView_PhotoButton", comment: "Photo input button"))
                                 }
                             }
                             .buttonStyle(DashboardButtonStyle())
@@ -108,7 +108,7 @@ struct ContentView: View {
                                     Image(systemName: "paintpalette.fill")
                                         .font(.system(size: iconSize))
                                     Spacer()
-                                    Text("つくる")
+                                    Text(NSLocalizedString("ContentView_CreateButton", comment: "Create pixel art button"))
                                 }
                             }
                             .buttonStyle(DashboardButtonStyle())
@@ -130,7 +130,7 @@ struct ContentView: View {
                 Spacer()
             }
             .padding()
-            .navigationTitle("turnie")
+            .navigationTitle(NSLocalizedString("App_Name", comment: "Application Name"))
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -139,13 +139,13 @@ struct ContentView: View {
                             showingDeviceList = true
                             bleManager.startScanning()
                         }) {
-                            Label("Add turnie", systemImage: "plus")
+                            Label(NSLocalizedString("ContentView_AddTurnie", comment: "Add turnie button label"), systemImage: "plus")
                         }
                         if bleManager.isConnected {
                             Button(role: .destructive, action: {
                                 bleManager.disconnect()
                             }) {
-                                Label("Disconnect \(bleManager.deviceName)", systemImage: "trash")
+                                Label(String(format: NSLocalizedString("ContentView_Disconnect", comment: "Disconnect device button"), bleManager.deviceName), systemImage: "trash")
                             }
                         }
                     }label: {
