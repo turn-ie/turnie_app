@@ -6,9 +6,11 @@ struct ImageInputView: View {
     @State private var showingCamera = false
     @State private var showingLibrary = false
     @State private var mosaicArray: [UInt8] = []
-    @ObservedObject var bleManager: BLEManager
+    @EnvironmentObject var bleManager: BLEManager
     @State private var debugText: String = NSLocalizedString("ImageInput_NoPhotoAvailable", comment: "Message when no photo is available")
     @Binding var isPresented: Bool
+    
+    private let processor = ImageProcessor()
 
     var body: some View {
         NavigationStack {
@@ -28,17 +30,10 @@ struct ImageInputView: View {
                     Button(action: {
                         let text = mosaicArray
                         guard !text.isEmpty else { return }
-//                        let redRGB: [UInt8] = Array(repeating: 0, count: 8 * 8 * 3).enumerated().map { index, _ in
-//                            switch index % 3 {
-//                            case 0: return 255  // R
-//                            default: return 0   // G, B
-//                            }
-//                        }
                         let json: [String: Any] = [
                             "id": "p002",
                             "flag": "image",
                             "rgb": text
-//                            "rgb": redRGB
                         ]
                         bleManager.sendJSON(json)
                         mosaicArray = []
@@ -96,96 +91,13 @@ struct ImageInputView: View {
 
     // MARK: - 共通画像処理
     func processImage(_ image: UIImage?) {
-        guard let uiImage = image else {
+        guard let flat = processor.processImage(image) else {
             debugText = NSLocalizedString("ImageInput_ImageFetchFailed", comment: "Error message when image fetching fails")
             return
         }
-        // 1. 正方形にトリミング
-        let square = cropCenterSquare(uiImage)
-        // 2. 8×8 に縮小
-        let small = resizeImage(square, to: CGSize(width: 8, height: 8))
-        // 3. RGB配列生成
-        let flat = rgbFlatArray(from: small)
         mosaicArray = flat
         debugText = String(format: NSLocalizedString("ImageInput_GenerationComplete", comment: "Image generation complete message"), flat.count)
     }
-    
-    // MARK: - Image processing helpers
-
-    func cropCenterSquare(_ image: UIImage) -> UIImage {
-        guard let cg = image.cgImage else { return image }
-        let w = CGFloat(cg.width)
-        let h = CGFloat(cg.height)
-        let length = min(w, h)
-        let originX = (w - length) / 2.0
-        let originY = (h - length) / 2.0
-        let cropRect = CGRect(x: originX, y: originY, width: length, height: length).integral
-        guard let croppedCg = cg.cropping(to: cropRect) else { return image }
-        return UIImage(cgImage: croppedCg, scale: image.scale, orientation: image.imageOrientation)
-    }
-
-    func resizeImage(_ image: UIImage, to size: CGSize) -> UIImage {
-        let format = UIGraphicsImageRendererFormat()
-        format.scale = 1
-        format.opaque = true
-        let renderer = UIGraphicsImageRenderer(size: size, format: format)
-        return renderer.image { _ in
-            image.draw(in: CGRect(origin: .zero, size: size))
-        }
-    }
-    
-    func rgbFlatArray(from image: UIImage) -> [UInt8] {
-        // 🔸 必ず 8x8 にリサイズ
-        let targetSize = CGSize(width: 8, height: 8)
-        UIGraphicsBeginImageContext(targetSize)
-        image.draw(in: CGRect(origin: .zero, size: targetSize))
-        let resizedImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        guard let cg = resizedImage?.cgImage else { return [] }
-
-        let width = cg.width
-        let height = cg.height
-        let bytesPerPixel = 4
-        let bytesPerRow = bytesPerPixel * width
-        let totalBytes = height * bytesPerRow
-
-        var pixelData = [UInt8](repeating: 0, count: totalBytes)
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-
-        // ✅ ARGB形式で安全に取得（Alphaを無視）
-        guard let context = CGContext(
-            data: &pixelData,
-            width: width,
-            height: height,
-            bitsPerComponent: 8,
-            bytesPerRow: bytesPerRow,
-            space: colorSpace,
-            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
-        ) else { return [] }
-
-        context.draw(cg, in: CGRect(x: 0, y: 0, width: width, height: height))
-
-        var flatRGB: [UInt8] = []
-        flatRGB.reserveCapacity(width * height * 3)
-
-        // 🔸 CoreGraphicsは下→上の順で描画されることが多いため、反転して走査
-//        for y in (0..<height).reversed() {
-        for y in 0..<height{
-            for x in 0..<width {
-                let idx = y * bytesPerRow + x * bytesPerPixel
-                let r = pixelData[idx]
-                let g = pixelData[idx + 1]
-                let b = pixelData[idx + 2]
-                flatRGB.append(r)
-                flatRGB.append(g)
-                flatRGB.append(b)
-            }
-        }
-
-        return flatRGB
-    }
-
 }
 
 // MARK: - ImagePicker と UIImage.fixOrientation（前と同じ）

@@ -4,7 +4,7 @@ struct PixelArtInputView: View {
     @State private var mosaicArray: [UInt8] = Array(repeating: 255, count: 8 * 8 * 3)
     @State private var selectedColor: Color = .black
     @State private var pickerColor: Color = .red
-    @ObservedObject var bleManager: BLEManager
+    @EnvironmentObject var bleManager: BLEManager
     @Binding var isPresented: Bool
 
     let paletteColors: [Color] = [

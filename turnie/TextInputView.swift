@@ -2,7 +2,7 @@ import SwiftUI
 
 struct TextInputView: View {
     @State private var inputText = ""
-    @ObservedObject var bleManager: BLEManager
+    @EnvironmentObject var bleManager: BLEManager
     @Binding var isPresented: Bool
     
     var body: some View {

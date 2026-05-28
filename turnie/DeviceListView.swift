@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DeviceListView: View {
-    @ObservedObject var bleManager: BLEManager
+    @EnvironmentObject var bleManager: BLEManager
     @Binding var isPresented: Bool
     
     var body: some View {

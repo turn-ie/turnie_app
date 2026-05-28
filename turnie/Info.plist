@@ -9,6 +9,8 @@
 			<string>Default</string>
 		</dict>
 	</array>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>This app uses Bluetooth to connect to ESP32 device</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
