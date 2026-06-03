@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var showingTextInput = false
     @State private var showingImageInput = false
     @State private var showingPixelInput = false
+    @State private var showingSettings = false
     
     var body: some View {
         
@@ -95,6 +96,17 @@ struct ContentView: View {
                             }
                             .buttonStyle(DashboardButtonStyle())
                             .disabled(!bleManager.isConnected)
+
+                            Button(action: {showingSettings = true}) {
+                                VStack(alignment: .leading) {
+                                    Image(systemName: "gear")
+                                        .font(.system(size: iconSize))
+                                    Spacer()
+                                    Text(NSLocalizedString("ContentView_SettingsButton", comment: "Settings button label"))
+                                }
+                            }
+                            .buttonStyle(DashboardButtonStyle())
+                            .disabled(!bleManager.isConnected)
                         }
                 Spacer()
             }
@@ -134,6 +146,9 @@ struct ContentView: View {
             }
             .sheet(isPresented: $showingPixelInput) {
                 PixelArtInputView(isPresented: $showingPixelInput)
+            }
+            .sheet(isPresented: $showingSettings) {
+                SettingsView(isPresented: $showingSettings)
             }
         }
     }

@@ -23,3 +23,10 @@
 "PixelArt_FillButton" = "塗りつぶす";
 "PixelArt_NavigationTitle" = "ピクセルアート作成";
 "ImageInput_GenerationComplete" = "生成完了: %d バイト";
+"ContentView_SettingsButton" = "設定";
+"Settings_NavigationTitle" = "設定";
+"Settings_Hue" = "色相";
+"Settings_Brightness" = "明るさ";
+"Settings_Name" = "なまえ";
+"Settings_Hometown" = "出身地";
+"Settings_SendButton" = "設定を保存";

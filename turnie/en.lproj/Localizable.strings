@@ -23,3 +23,10 @@
 "PixelArt_FillButton" = "Fill";
 "PixelArt_NavigationTitle" = "Create Pixel Art";
 "ImageInput_GenerationComplete" = "Generated: %d bytes";
+"ContentView_SettingsButton" = "Settings";
+"Settings_NavigationTitle" = "Settings";
+"Settings_Hue" = "Hue";
+"Settings_Brightness" = "Brightness";
+"Settings_Name" = "Name";
+"Settings_Hometown" = "Hometown";
+"Settings_SendButton" = "Save Settings";
