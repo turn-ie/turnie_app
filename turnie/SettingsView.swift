@@ -8,10 +8,28 @@ struct SettingsView: View {
     @State private var brightness: Double = 50
     @State private var name: String = ""
     @State private var hometown: String = ""
+    @State private var selectedMotion: MotionType = .ripple
     
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    VStack {
+                        MotionPreview(type: selectedMotion, hue: hue, brightness: brightness)
+                            .frame(width: 160, height: 160)
+                            .background(Color.black)
+                            .cornerRadius(12)
+                            .padding(.vertical, 8)
+                        
+                        Picker("Motion Type", selection: $selectedMotion) {
+                            ForEach(MotionType.allCases) { type in
+                                Text(type.rawValue).tag(type)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                }
+                
                 Section(header: Text(NSLocalizedString("Settings_Hue", comment: "Hue section"))) {
                     HStack {
                         Slider(value: $hue, in: 0...360, step: 1)
