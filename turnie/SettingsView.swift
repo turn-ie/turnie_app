@@ -87,6 +87,11 @@ struct SettingsView: View {
                     }
                 }
             }
+            .onAppear {
+                if bleManager.isConnected {
+                    name = bleManager.deviceName
+                }
+            }
         }
     }
 }

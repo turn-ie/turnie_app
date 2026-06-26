@@ -287,6 +287,13 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
         }
 
         print("✅ JSON sent successfully")
+
+        if json["flag"] as? String == "settings", let newName = json["name"] as? String {
+            DispatchQueue.main.async {
+                self.deviceName = newName
+                self.lastConnectedName = newName
+            }
+        }
     }
 }
 
