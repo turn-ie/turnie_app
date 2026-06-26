@@ -65,6 +65,11 @@ struct SettingsView: View {
                             "hometown": hometown
                         ]
                         bleManager.sendJSON(json)
+                        
+                        UserDefaults.standard.set(hue, forKey: "lastSentHue")
+                        UserDefaults.standard.set(brightness, forKey: "lastSentBrightness")
+                        UserDefaults.standard.set(hometown, forKey: "lastSentHometown")
+                        
                         isPresented = false
                     }) {
                         Text(NSLocalizedString("Settings_SendButton", comment: "Send settings button"))
@@ -91,6 +96,13 @@ struct SettingsView: View {
                 if bleManager.isConnected {
                     name = bleManager.deviceName
                 }
+                hue = UserDefaults.standard.double(forKey: "lastSentHue")
+                if UserDefaults.standard.object(forKey: "lastSentBrightness") != nil {
+                    brightness = UserDefaults.standard.double(forKey: "lastSentBrightness")
+                } else {
+                    brightness = 50
+                }
+                hometown = UserDefaults.standard.string(forKey: "lastSentHometown") ?? ""
             }
         }
     }
