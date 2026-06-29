@@ -9,6 +9,7 @@ struct SettingsView: View {
     @State private var name: String = ""
     @State private var hometown: String = ""
     @State private var selectedMotion: MotionType = .ripple
+    @State private var hasLoadedSettings = false
     
     var body: some View {
         NavigationStack {
@@ -61,6 +62,7 @@ struct SettingsView: View {
                             "flag": "settings",
                             "hue": Int(hue),
                             "brightness": Int(brightness),
+                            "motion": selectedMotion.rawValue,
                             "name": name,
                             "hometown": hometown
                         ]
@@ -68,6 +70,7 @@ struct SettingsView: View {
                         
                         UserDefaults.standard.set(hue, forKey: "lastSentHue")
                         UserDefaults.standard.set(brightness, forKey: "lastSentBrightness")
+                        UserDefaults.standard.set(selectedMotion.rawValue, forKey: "lastSentMotion")
                         UserDefaults.standard.set(hometown, forKey: "lastSentHometown")
                         
                         isPresented = false
@@ -93,6 +96,8 @@ struct SettingsView: View {
                 }
             }
             .onAppear {
+                hasLoadedSettings = false
+                
                 if bleManager.isConnected {
                     name = bleManager.deviceName
                 }
@@ -102,7 +107,43 @@ struct SettingsView: View {
                 } else {
                     brightness = 50
                 }
+                if let lastMotionStr = UserDefaults.standard.string(forKey: "lastSentMotion"),
+                   let lastMotion = MotionType(rawValue: lastMotionStr) {
+                    selectedMotion = lastMotion
+                } else {
+                    selectedMotion = .ripple
+                }
                 hometown = UserDefaults.standard.string(forKey: "lastSentHometown") ?? ""
+                
+                if bleManager.isConnected {
+                    bleManager.requestSettings()
+                }
+            }
+            .onReceive(bleManager.$latestSettings) { settings in
+                guard let settings = settings else { return }
+                guard !hasLoadedSettings else { return }
+                
+                if let nameVal = settings.name {
+                    self.name = nameVal
+                }
+                if let hueVal = settings.hue {
+                    self.hue = Double(hueVal)
+                    UserDefaults.standard.set(hueVal, forKey: "lastSentHue")
+                }
+                if let brightnessVal = settings.brightness {
+                    self.brightness = Double(brightnessVal)
+                    UserDefaults.standard.set(brightnessVal, forKey: "lastSentBrightness")
+                }
+                if let motionVal = settings.motion, let motionType = MotionType(rawValue: motionVal) {
+                    self.selectedMotion = motionType
+                    UserDefaults.standard.set(motionVal, forKey: "lastSentMotion")
+                }
+                if let hometownVal = settings.hometown {
+                    self.hometown = hometownVal
+                    UserDefaults.standard.set(hometownVal, forKey: "lastSentHometown")
+                }
+                
+                hasLoadedSettings = true
             }
         }
     }

@@ -10,6 +10,15 @@ struct DiscoveredDevice: Identifiable {
     }
 }
 
+struct SettingsData: Codable, Equatable {
+    let flag: String
+    let hue: Int?
+    let brightness: Int?
+    let motion: String?
+    let name: String?
+    let hometown: String?
+}
+
 class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeripheralDelegate {
     @Published var isConnected = false
     @Published var isScanning = false
@@ -18,6 +27,9 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
     @Published var discoveredDevices: [DiscoveredDevice] = []
     @Published var hasPreviousDevice = false
     @Published var receivedData: String = ""
+    @Published var latestSettings: SettingsData? = nil
+    
+    private var rxBuffer: String = ""
     
     var centralManager: CBCentralManager!
     var targetPeripheral: CBPeripheral?
@@ -191,7 +203,7 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
             return
         }
         for service in peripheral.services ?? [] {
-            peripheral.discoverCharacteristics([rxCharacteristicUUID], for: service)
+            peripheral.discoverCharacteristics([rxCharacteristicUUID, txCharacteristicUUID], for: service)
         }
     }
 
@@ -221,7 +233,47 @@ class BLEManager: NSObject, ObservableObject, CBCentralManagerDelegate, CBPeriph
 
         DispatchQueue.main.async {
             self.receivedData += text + "\n"
+            self.rxBuffer += text
+            self.parseRxBuffer()
         }
+    }
+    
+    private func parseRxBuffer() {
+        while let startRange = rxBuffer.range(of: "{") {
+            let searchStart = startRange.lowerBound
+            if let endRange = rxBuffer.range(of: "}", options: [], range: searchStart..<rxBuffer.endIndex) {
+                let jsonSubstring = rxBuffer[searchStart...endRange.lowerBound]
+                let jsonString = String(jsonSubstring)
+                
+                if let data = jsonString.data(using: .utf8) {
+                    do {
+                        let settings = try JSONDecoder().decode(SettingsData.self, from: data)
+                        if settings.flag == "settings" {
+                            self.latestSettings = settings
+                            print("Successfully parsed settings: \(settings)")
+                        }
+                    } catch {
+                        print("Failed to decode JSON: \(error)")
+                    }
+                }
+                
+                // 処理した部分（} まで）を rxBuffer から削除
+                rxBuffer.removeSubrange(rxBuffer.startIndex...endRange.lowerBound)
+            } else {
+                // } がまだ見つからないため、次のデータ受信を待つ
+                break
+            }
+        }
+    }
+    
+    func requestSettings() {
+        guard isConnected else {
+            print("Cannot request settings: Not connected")
+            return
+        }
+        latestSettings = nil // 前回の設定をクリア
+        let json: [String: Any] = ["flag": "get_settings"]
+        sendJSON(json)
     }
     
     func requestDataJson() {
